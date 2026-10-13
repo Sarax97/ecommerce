@@ -28,7 +28,6 @@
       <button class="category-btn" data-category="Computers">Computers</button>
       <button class="category-btn" data-category="Accessories">Accessories</button>
       <button class="category-btn" data-category="Phones">Phones</button>
-      <button class="category-btn" data-category="Samsung Camera">Samsung Camera</button>
     </div>
 
     <select id="sort-select">
@@ -38,9 +37,11 @@
     </select>
   </section>
 
-  <div id="product-list" class="product-grid"></div>
+  <div id="product-list" class="product-grid"><p>Loading products...</p></div>
 
   <footer class="site-footer"><p>&copy; 2025 ShopNow.</p></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

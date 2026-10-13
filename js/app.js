@@ -1,139 +1,9 @@
-const products = [
-    {
-        id: 1,
-        name: "Business Laptop",
-        category: "Computers",
-        price: 3499,
-        stock: 10
-    },
+// --- Supabase client ---
+const SUPABASE_URL = "https://dkcuuwpgcfgvknvpqkcb.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_kGtEPUmswwbTI4WJ7R9-Rg_fwxF5YmH";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    {
-        id: 2,
-        name: "IPhone17",
-        category: "Phones",
-        price: 299,
-        stock: 25
-    },
-
-    {
-        id: 3,
-        name: "Camera Device",
-        category: "Samsung Camera",
-        price: 180,
-        stock: 0
-    },
-     {
-        id: 4,
-        name: "HP Laptop",
-        category: "Computers",
-        price: 2999,
-        stock: 4
-    },
-
-    {
-        id: 5,
-        name: "Lenovo Laptop",
-        category: "Computers",
-        price: 2599,
-        stock: 8
-    },
-
-    {
-        id: 6,
-        name: "Wireless Mouse",
-        category: "Accessories",
-        price: 129,
-        stock: 25
-    },
-
-    {
-        id: 7,
-        name: "Keyboard",
-        category: "Accessories",
-        price: 199,
-        stock: 3
-    },
-
-    {
-        id: 8,
-        name: "USB-C Cable",
-        category: "Accessories",
-        price: 49,
-        stock: 20
-    },
-
-    {
-        id: 9,
-        name: "Headphones",
-        category: "Accessories",
-        price: 299,
-        stock: 6
-    },
-
-    {
-        id: 10,
-        name: "Smartphone",
-        category: "Phones",
-        price: 2499,
-        stock: 0
-    },
-
-    {
-        id: 11,
-        name: "iPhone 15",
-        category: "Phones",
-        price: 3299,
-        stock: 5
-    },
-
-    {
-        id: 12,
-        name: "Samsung Galaxy",
-        category: "Phones",
-        price: 2799,
-        stock: 12
-    },
-
-    {
-        id: 13,
-        name: "Google Pixel",
-        category: "Phones",
-        price: 2399,
-        stock: 2
-    },
-
-    {
-        id: 14,
-        name: "Tablet",
-        category: "Computers",
-        price: 1599,
-        stock: 7
-    },
-
-    {
-        id: 15,
-        name: "Webcam",
-        category: "Accessories",
-        price: 179,
-        stock: 10
-    },
-
-    {
-        id: 16,
-        name: "Gaming Monitor",
-        category: "Computers",
-        price: 1899,
-        stock: 0
-    },
-
-    {
-        id: 17,
-        name: "Power Bank",
-        category: "Accessories",
-        price: 99,
-        stock: 1
-    }
-];
+let products = [];
 
 function renderProducts(list) {
   const container = document.getElementById("product-list");
@@ -148,16 +18,38 @@ function renderProducts(list) {
     container.innerHTML += `
       <div class="product">
         <h3>${prod.name}</h3>
-        <p>AED ${prod.price.toLocaleString()}</p>
+        <p>AED ${Number(prod.price).toLocaleString()}</p>
         <p class="stock">${stockLabel}</p>
+        <a href="product-detail.html?id=${prod.product_id}">View details</a>
         <button ${prod.stock === 0 ? "disabled" : ""}>Add to Cart</button>
       </div>`;
   });
 }
 
-renderProducts(products);
+// --- Fetch products from Supabase ---
+async function loadProducts() {
+  const { data, error } = await supabaseClient
+    .from("product")
+    .select("*, category(category_name)")
+    .order("name");
 
-// --- Combined search + filter + sort (Challenge) ---
+  if (error) {
+    document.getElementById("product-list").innerHTML =
+      `<p>Could not load products: ${error.message}</p>`;
+    return;
+  }
+
+  products = data.map(p => ({
+    ...p,
+    category: p.category ? p.category.category_name : ""
+  }));
+
+  renderProducts(products);
+}
+
+loadProducts();
+
+// --- Search + filter + sort ---
 let currentSearch = "";
 let currentCategory = "All";
 let currentSort = "";
@@ -165,10 +57,10 @@ let currentSort = "";
 function applyAll() {
   let result = products.filter(p =>
     p.name.toLowerCase().includes(currentSearch) &&
-    (currentCategory === "All" || p.category === currentCategory)
+    (currentCategory === "All" ||
+      p.category.toLowerCase().startsWith(currentCategory.toLowerCase().replace(/s$/, "")))
   );
 
-  result = [...result];
   if (currentSort === "low-high") result.sort((a, b) => a.price - b.price);
   if (currentSort === "high-low") result.sort((a, b) => b.price - a.price);
 
